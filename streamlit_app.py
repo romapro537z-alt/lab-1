@@ -1,6 +1,5 @@
 import streamlit as st
-import networkx as nx
-import matplotlib.pyplot as plt
+import pandas as pd
 
 # Настройка страницы
 st.set_page_config(page_title="Лабораторная работа №1", layout="wide")
@@ -21,37 +20,25 @@ with tab1:
         st.write("• **Начальное состояние:** `INIT`")
         st.write("• **Рабочие состояния:** Вниз 1, Вправо 1, Вверх 1, Влево 1, Вниз 2, Вправо 2, Вверх 2, Влево 2, Вниз 3")
         st.write("• **Конечное состояние:** `STOP` (Остановка)")
-        st.write("• **Процесс:** `Движение` (`t.forward(10)`")
+        st.write("• **Процесс:** `Движение` (`t.forward(10)`)")
         st.write("• **Действия:** Повороты (`setheading` на 0°, 90°, 180°, 270°)")
 
     with col2:
-        st.markdown("### Визуализация графа модели:")
-        
-        # Строим граф с помощью networkx и matplotlib
-        fig, ax = plt.subplots(figsize=(6, 4))
-        G = nx.DiGraph()
-        
-        states = [
-            "INIT", "Вниз 1", "Вправо 1", "Вверх 1", "Влево 1", 
-            "Вниз 2", "Вправо 2", "Вверх 2", "Влево 2", "Вниз 3", "STOP"
-        ]
-        
-        for i in range(len(states) - 1):
-            G.add_edge(states[i], states[i+1])
-            
-        pos = nx.spring_layout(G, seed=42)
-        nx.draw(
-            G, pos, with_labels=True, 
-            node_color='#4CAF50', node_size=1200, 
-            font_size=8, font_color='white', font_weight='bold',
-            ax=ax, arrows=True, arrowsize=15
-        )
-        st.pyplot(fig)
+        st.markdown("### Граф переходов модели:")
+        # Используем встроенный в Streamlit инструмент визуализации графов без внешних библиотек
+        st.graphviz_chart('''
+            digraph {
+                rankdir=LR;
+                node [style=filled, fillcolor="#4CAF50", fontcolor=white, fontname="Arial"];
+                edge [color="#666666"];
+                
+                INIT -> "Вниз 1" -> "Вправо 1" -> "Вверх 1" -> "Влево 1" -> "Вниз 2" -> "Вправо 2" -> "Вверх 2" -> "Влево 2" -> "Вниз 3" -> STOP [fillcolor="#F44336"];
+            }
+        ''')
 
 with tab2:
     st.header("Таблица переходов и геометрических условий (Вариант 1)")
     
-    import pandas as pd
     data = {
         "Состояние источника": ["Начальное", "Вниз 1", "Вправо 1", "Вверх 1", "Влево 1", "Вниз 2", "Вправо 2", "Вверх 2", "Влево 2", "Вниз 3"],
         "Условие перехода": ["Старт", "y <= -4", "x >= 4", "y >= 0", "x <= 1", "y <= -3", "x >= 3", "y >= -1", "x <= 2", "y <= -2"],
