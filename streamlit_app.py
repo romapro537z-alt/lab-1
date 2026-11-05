@@ -2,58 +2,116 @@ import streamlit as st
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# Убираем все отступы страницы для максимального размера схемы
-st.set_page_config(page_title="Схема онтологии", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Лабораторная работа №1", layout="wide")
 
-# Настройка стилей, чтобы убрать лишние элементы Streamlit
-st.markdown("""
-    <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        .block-container {padding: 0rem !important;}
-    </style>
-""", unsafe_allow_html=True)
+st.title("Лабораторная работа №1: Моделирование траектории робота")
+st.subheader("Студент: Васильченко Р.Д. | Группа: ИВТИИбд-14 | Вариант №1: Спираль")
 
-# Создаем граф
-fig, ax = plt.subplots(figsize=(14, 8))
-G = nx.DiGraph()
+def get_system_info():
+    return {
+        "student_name": "Васильченко Роман Дмитриевич",
+        "academic_group": "ИВТИИбд-14",
+        "variant": "Вариант 1 (Спираль)"
+    }
 
-# Состояния спирали (Вариант 1)
-states = [
-    "Начальное", "Вниз 1", "Вправо 1", "Вверх 1", "Влево 1", 
-    "Вниз 2", "Вправо 2", "Вверх 2", "Влево 2", "Вниз 3", "Остановка"
-]
+info = get_system_info()
+st.sidebar.markdown(f"**Студент:** {info['student_name']}")
+st.sidebar.markdown(f"**Группа:** {info['academic_group']}")
+st.sidebar.markdown(f"**Вариант:** {info['variant']}")
 
-# Последовательные переходы
-for i in range(len(states) - 1):
-    G.add_edge(states[i], states[i+1])
+# Вкладки для интерфейса
+tab1, tab2 = st.tabs(["1. Онтологическая модель (Граф)", "2. Логика состояний (Код)"])
 
-# Процесс движения
-proc = "Движение\n(t.forward)"
-for s in states[1:-1]:
-    G.add_edge(s, proc)
+with tab1:
+    st.header("Граф переходов состояний (Шаблон кафедры)")
+    
+    fig, ax = plt.subplots(figsize=(10, 5))
+    G = nx.DiGraph()
+    
+    # Цепочка состояний для спирали Варианта 1
+    states = [
+        "INIT", "Вниз 1", "Вправо 1", "Вверх 1", "Влево 1", 
+        "Вниз 2", "Вправо 2", "Вверх 2", "Влево 2", "Вниз 3", "STOP"
+    ]
+    
+    for i in range(len(states) - 1):
+        G.add_edge(states[i], states[i+1])
+        
+    pos = nx.spring_layout(G, seed=42)
+    colors = ['#E53935' if n == "STOP" else '#7CB342' for n in G.nodes()]
+    
+    nx.draw(
+        G, pos, with_labels=True, 
+        node_color=colors, node_size=2500, 
+        font_size=9, font_color='white', font_weight='bold',
+        ax=ax, arrows=True, arrowsize=15
+    )
+    st.pyplot(fig)
 
-# Фиксированная понятная раскладка узлов
-pos = nx.planar_layout(G) if nx.is_planar(G) else nx.spring_layout(G, seed=15, k=1.2)
+with tab2:
+    st.header("Исходный код логики (perform_switch_case)")
+    st.code('''import turtle
 
-# Цвета
-colors = []
-for node in G.nodes():
-    if node == "Остановка":
-        colors.append('#E53935')
-    elif "Движение" in node:
-        colors.append('#1E88E5')
-    else:
-        colors.append('#7CB342')
+def perform_switch_case(state, t):
+    x = round(t.position()[0] / 20)
+    y = round(t.position()[1] / 20)
 
-# Отрисовка чистого графа
-nx.draw(
-    G, pos, with_labels=True, 
-    node_color=colors, node_size=3200, 
-    font_size=10, font_color='white', font_weight='bold',
-    ax=ax, arrows=True, arrowsize=20, edge_color='#555555'
-)
-
-# Вывод схемы во весь экран
-st.pyplot(fig, use_container_width=True)
+    if state == "INIT":
+        t.setheading(270) # Вниз
+        return "DOWN_1"
+        
+    if state == "DOWN_1":
+        t.forward(10)
+        if y <= -4:
+            t.setheading(0) # Вправо
+            return "RIGHT_1"
+            
+    if state == "RIGHT_1":
+        t.forward(10)
+        if x >= 4:
+            t.setheading(90) # Вверх
+            return "UP_1"
+            
+    if state == "UP_1":
+        t.forward(10)
+        if y >= 0:
+            t.setheading(180) # Влево
+            return "LEFT_1"
+            
+    if state == "LEFT_1":
+        t.forward(10)
+        if x <= 1:
+            t.setheading(270) # Вниз
+            return "DOWN_2"
+            
+    if state == "DOWN_2":
+        t.forward(10)
+        if y <= -3:
+            t.setheading(0) # Вправо
+            return "RIGHT_2"
+            
+    if state == "RIGHT_2":
+        t.forward(10)
+        if x >= 3:
+            t.setheading(90) # Вверх
+            return "UP_2"
+            
+    if state == "UP_2":
+        t.forward(10)
+        if y >= -1:
+            t.setheading(180) # Влево
+            return "LEFT_2"
+            
+    if state == "LEFT_2":
+        t.forward(10)
+        if x <= 2:
+            t.setheading(270) # Вниз (Стоп)
+            return "DOWN_3"
+            
+    if state == "DOWN_3":
+        t.forward(10)
+        if y <= -2:
+            return "STOP"
+            
+    return state
+''', language="python")
