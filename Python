@@ -1,1 +1,29 @@
+import turtle
 
+def draw_spiral():
+    screen = turtle.Screen()
+    screen.bgcolor("white")
+    screen.setup(width=600, height=600)
+    
+    t = turtle.Turtle()
+    t.speed(0)
+    t.pensize(2)
+    t.pencolor("black")
+    
+    # Старт из центра
+    t.penup()
+    t.goto(0, 0)
+    t.pendown()
+    
+    # Рисуем спираль с фиксированным шагом (3 витка = 12 сторон)
+    length = 10
+    for i in range(6):
+        t.forward(length)
+        t.left(90)
+        t.forward(length)
+        t.left(90)
+        length += 15
+        
+    t.hideturtle()
+
+draw_spiral()
